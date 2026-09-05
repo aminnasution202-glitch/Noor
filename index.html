@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maxim - Pesan Kendaraan</title>
+<style>
+  :root{
+    --red-50:#fff5f4;
+    --red-100:#fde9e7;
+    --red-200:#fad0cc;
+    --red-500:#e2685c;
+    --red-600:#d1544a;
+    --red-700:#b8433a;
+    --ink:#2b2320;
+    --muted:#8a7570;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--red-50);
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .phone{
+    width:100%;
+    max-width:420px;
+    background:var(--red-50);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .statusbar{
+    background:#c65c52;
+    color:#fff;
+    font-size:13px;
+    padding:8px 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .statusbar .icons{display:flex; gap:8px; align-items:center; opacity:.9;}
+
+  .header{
+    padding:20px 20px 10px;
+  }
+  .logo{
+    font-size:28px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .logo span{color:var(--red-600);}
+
+  .content{
+    padding:14px 16px 92px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .field{
+    background:var(--card);
+    border-radius:16px;
+    padding:16px 14px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:12px;
+    transition:border-color .15s ease;
+  }
+  .field:focus-within{
+    border-color:var(--red-200);
+  }
+  .field .dot{
+    width:22px; height:22px;
+    border-radius:50%;
+    border:3px solid var(--red-500);
+    flex-shrink:0;
+  }
+  .field .dot.dot-destination{
+    border-color:var(--red-700);
+    background:var(--red-700);
+  }
+  .price-icon{
+    width:34px; height:34px;
+    border-radius:50%;
+    background:var(--red-100);
+    color:var(--red-700);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px;
+    flex-shrink:0;
+  }
+  .field-text{flex:1;}
+  .field-label{
+    font-size:12px;
+    color:var(--red-500);
+    margin-bottom:2px;
+  }
+  .field-value{
+    font-size:17px;
+    color:var(--ink);
+    font-weight:500;
+  }
+  .field-value.placeholder{color:var(--muted); font-weight:400;}
+  .field-input{
+    border:none;
+    outline:none;
+    background:transparent;
+    width:100%;
+    font-family:inherit;
+  }
+  .field-input::placeholder{color:var(--muted); font-weight:400;}
+  .pac-container{
+    border-radius:14px;
+    margin-top:6px;
+    border:1px solid var(--red-100);
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  .suggestions{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .suggestion{
+    flex:1;
+    background:var(--card);
+    border-radius:14px;
+    padding:12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 2px 8px rgba(180,80,70,0.06);
+    min-width:0;
+  }
+  .suggestion .pin{
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--red-100);
+    color:var(--red-600);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    font-size:13px;
+  }
+  .suggestion-text{
+    min-width:0;
+  }
+  .suggestion-label{
+    font-size:11px;
+    color:var(--muted);
+  }
+  .suggestion-value{
+    font-size:13px;
+    color:var(--ink);
+    font-weight:500;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .map-area{
+    height:200px;
+    background:
+      linear-gradient(var(--red-100) 1px, transparent 1px) 0 0/100% 34px,
+      var(--red-50);
+    border-radius:18px;
+    margin-bottom:12px;
+    position:relative;
+    overflow:hidden;
+  }
+  .map-area::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 50% 45%, rgba(210,90,80,0.12), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+  #map{
+    width:100%;
+    height:100%;
+    position:relative;
+    z-index:1;
+  }
+
+  .route-info{
+    display:none;
+    background:var(--red-50);
+    border-radius:16px;
+    padding:14px 16px;
+    margin-bottom:12px;
+    align-items:center;
+    gap:14px;
+  }
+  .route-info.show{ display:flex; }
+  .route-info .ricon{
+    font-size:20px;
+    color:var(--red-600);
+    flex-shrink:0;
+  }
+  .route-info .ritext{
+    flex:1;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .route-info .ritext b{
+    font-size:15px;
+  }
+  .route-info .riprice{
+    text-align:right;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .route-info .riprice b{
+    display:block;
+    font-size:15px;
+    color:var(--red-700);
+  }
+  .route-loading{
+    font-size:12px;
+    color:var(--muted);
+    text-align:center;
+    padding:0 0 12px;
+    display:none;
+  }
+  .route-loading.show{ display:block; }
+
+  .sheet{
+    background:var(--card);
+    border-radius:26px 26px 0 0;
+    padding:16px 16px 10px;
+    box-shadow:0 -6px 24px rgba(180,80,70,0.10);
+  }
+
+  .details-btn{
+    width:100%;
+    background:var(--red-50);
+    border:none;
+    border-radius:16px;
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:16px;
+    color:var(--ink);
+    margin-bottom:12px;
+    cursor:pointer;
+  }
+  .details-btn .icon{color:var(--red-600); font-size:18px;}
+  .note-input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:16px;
+    color:var(--ink);
+    font-family:inherit;
+  }
+  .note-input::placeholder{color:var(--muted); font-weight:400;}
+
+  .row-2{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .option-btn{
+    flex:1;
+    background:var(--red-50);
+    border:none;
+    border-radius:16px;
+    padding:13px 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:15px;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .option-btn:hover{ background:var(--red-100); }
+  .option-btn .icon{color:var(--red-600); font-size:16px;}
+
+  .payment-select{
+    position:relative;
+    justify-content:flex-start;
+  }
+  .payment-select .dropdown-arrow{
+    margin-left:auto;
+    color:var(--red-600);
+    font-size:12px;
+  }
+  .dropdown-menu{
+    display:none;
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    right:0;
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 8px 22px rgba(180,80,70,0.16);
+    overflow:hidden;
+    z-index:5;
+  }
+  .dropdown-menu.open{ display:block; }
+  .dropdown-item{
+    padding:12px 14px;
+    font-size:14px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    transition:background .12s ease;
+  }
+  .dropdown-item .check{
+    display:none;
+    color:var(--red-600);
+    font-weight:700;
+  }
+  .dropdown-item.selected .check{
+    display:inline;
+  }
+  .dropdown-item:hover{
+    background:var(--red-50);
+  }
+  .dropdown-item + .dropdown-item{
+    border-top:1px solid var(--red-100);
+  }
+
+  .categories{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .category{
+    position:relative;
+    border:2px solid transparent;
+    border-radius:16px;
+    padding:14px 6px 10px;
+    text-align:center;
+    background:var(--red-50);
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .category.active{
+    border-color:var(--red-500);
+    background:#fff;
+  }
+  .category:hover{
+    background:var(--red-100);
+  }
+  .category.active:hover{
+    background:#fff;
+  }
+  .category .emoji{
+    font-size:30px;
+    display:block;
+    margin-bottom:8px;
+  }
+  .category .name{
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .category .subtext{
+    display:block;
+    font-size:10px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .category .badge{
+    position:absolute;
+    top:-6px;
+    right:-6px;
+    background:var(--red-600);
+    color:#fff;
+    font-size:9px;
+    font-weight:700;
+    padding:3px 6px;
+    border-radius:10px;
+  }
+
+  .order-btn{
+    width:100%;
+    background:linear-gradient(180deg, var(--red-500), var(--red-600));
+    border:none;
+    color:#fff;
+    font-size:18px;
+    font-weight:700;
+    padding:17px;
+    border-radius:22px;
+    cursor:pointer;
+    box-shadow:0 8px 18px rgba(190,70,60,0.30);
+    margin-bottom:14px;
+    transition:opacity .15s ease, transform .1s ease;
+  }
+  .order-btn:active{transform:translateY(1px);}
+  .order-btn:disabled{
+    background:var(--red-200);
+    color:#fff;
+    box-shadow:none;
+    cursor:not-allowed;
+    opacity:.85;
+  }
+
+  .nav{
+    display:flex;
+    justify-content:space-around;
+    padding:10px 0 6px;
+    border-top:1px solid var(--red-100);
+  }
+  .nav-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    color:var(--muted);
+    font-size:12px;
+    position:relative;
+    cursor:pointer;
+  }
+  .nav-item.active{color:var(--red-600); font-weight:600;}
+  .nav-item .nicon{font-size:20px;}
+  .nav-badge{
+    position:absolute;
+    top:-4px;
+    right:-10px;
+    background:var(--red-600);
+    color:#fff;
+    font-size:9px;
+    font-weight:700;
+    padding:2px 5px;
+    border-radius:8px;
+  }
+
+  /* ==== Screens ==== */
+  .screen{
+    display:none;
+  }
+  .screen.active{
+    display:flex;
+    flex-direction:column;
+  }
+  .screen-header{
+    font-size:20px;
+    font-weight:700;
+    color:var(--ink);
+    padding:6px 4px 14px;
+  }
+  .screen-header-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .screen-header-row .screen-header{
+    padding-bottom:0;
+  }
+  .add-fav-btn{
+    background:var(--red-100);
+    color:var(--red-700);
+    border:none;
+    border-radius:14px;
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .12s ease;
+  }
+  .add-fav-btn:hover{
+    background:var(--red-200);
+  }
+  .add-fav-form{
+    display:none;
+    flex-direction:column;
+    gap:8px;
+    background:var(--card);
+    border-radius:16px;
+    padding:14px;
+    margin-bottom:14px;
+    box-shadow:0 2px 8px rgba(180,80,70,0.06);
+  }
+  .add-fav-form.open{
+    display:flex;
+  }
+  .add-fav-input{
+    border:1px solid var(--red-100);
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:14px;
+    font-family:inherit;
+    outline:none;
+    color:var(--ink);
+  }
+  .add-fav-input:focus{
+    border-color:var(--red-500);
+  }
+  .add-fav-actions{
+    display:flex;
+    gap:8px;
+    margin-top:2px;
+  }
+  .add-fav-cancel, .add-fav-save{
+    flex:1;
+    border:none;
+    border-radius:12px;
+    padding:10px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .add-fav-cancel{
+    background:var(--red-50);
+    color:var(--muted);
+  }
+  .add-fav-save{
+    background:var(--red-600);
+    color:#fff;
+  }
+  .fav-delete{
+    font-size:16px;
+    flex-shrink:0;
+    cursor:pointer;
+    opacity:.55;
+    transition:opacity .12s ease, transform .1s ease;
+  }
+  .fav-delete:hover{
+    opacity:1;
+  }
+  .fav-delete:active{
+    transform:scale(1.15);
+  }
+  .bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:100%;
+    max-width:420px;
+    background:var(--card);
+    border-radius:26px 26px 0 0;
+    padding:10px 16px 6px;
+    box-shadow:0 -6px 24px rgba(180,80,70,0.10);
+    z-index:20;
+  }
+
+  /* ==== Tabs (Order) ==== */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .tab{
+    flex:1;
+    border:none;
+    background:var(--red-50);
+    color:var(--muted);
+    font-size:14px;
+    font-weight:600;
+    padding:11px;
+    border-radius:14px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tab.active{
+    background:var(--red-600);
+    color:#fff;
+  }
+  .tab-panel{
+    display:none;
+    flex-direction:column;
+    gap:10px;
+    overflow-y:auto;
+  }
+  .tab-panel.active{
+    display:flex;
+  }
+
+  .order-card{
+    background:var(--card);
+    border-radius:16px;
+    padding:14px;
+    box-shadow:0 2px 8px rgba(180,80,70,0.06);
+  }
+  .order-card-top{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .order-icon{
+    width:36px; height:36px;
+    border-radius:50%;
+    background:var(--red-50);
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px;
+    flex-shrink:0;
+  }
+  .order-route{
+    flex:1;
+    min-width:0;
+  }
+  .order-from, .order-to{
+    font-size:13px;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .order-from{ font-weight:600; margin-bottom:2px; }
+  .order-to{ color:var(--muted); }
+  .order-status{
+    font-size:11px;
+    font-weight:700;
+    padding:5px 9px;
+    border-radius:10px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .status-ongoing{ background:#fde9e7; color:var(--red-700); }
+  .status-waiting{ background:#fdf1d6; color:#a06a12; }
+  .status-done{ background:#e3f3e6; color:#2f7d40; }
+  .status-cancelled{ background:#eee; color:#8a7570; }
+  .order-card-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12px;
+    color:var(--muted);
+    border-top:1px solid var(--red-100);
+    padding-top:10px;
+  }
+  .order-price{
+    font-weight:700;
+    color:var(--red-700);
+    font-size:13px;
+  }
+  .cancel-order-btn{
+    width:100%;
+    margin-top:10px;
+    background:none;
+    border:1px solid var(--red-200);
+    color:var(--red-700);
+    border-radius:12px;
+    padding:9px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .12s ease;
+  }
+  .cancel-order-btn:hover{
+    background:var(--red-50);
+  }
+  .cancel-order-btn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+  }
+
+  .rating-row{
+    margin-top:10px;
+    border-top:1px solid var(--red-100);
+    padding-top:10px;
+  }
+  .stars{
+    display:flex;
+    gap:4px;
+    margin-bottom:8px;
+  }
+  .rating-row.rated .stars{
+    margin-bottom:4px;
+  }
+  .review-text{
+    font-size:12px;
+    color:var(--muted);
+    font-style:italic;
+  }
+  .star{
+    font-size:20px;
+    color:var(--red-500);
+    cursor:pointer;
+    transition:transform .1s ease;
+  }
+  .star:active{
+    transform:scale(1.2);
+  }
+  .review-input{
+    width:100%;
+    border:1px solid var(--red-100);
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:12px;
+    font-family:inherit;
+    outline:none;
+    margin-bottom:8px;
+    box-sizing:border-box;
+  }
+  .review-input:focus{
+    border-color:var(--red-500);
+  }
+  .rate-submit-btn{
+    width:100%;
+    background:var(--red-600);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:9px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .rate-submit-btn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+  }
+  .rated-summary{
+    margin-top:10px;
+    border-top:1px solid var(--red-100);
+    padding-top:10px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .rated-summary .stars-static{
+    color:var(--red-600);
+    font-size:15px;
+    margin-bottom:2px;
+  }
+
+  /* ==== Favorit ==== */
+  .favorite-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    overflow-y:auto;
+  }
+  .favorite-item{
+    background:var(--card);
+    border-radius:16px;
+    padding:14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 2px 8px rgba(180,80,70,0.06);
+    cursor:pointer;
+    transition:background .12s ease;
+  }
+  .favorite-item:hover{
+    background:var(--red-50);
+  }
+  .fav-icon{
+    width:36px; height:36px;
+    border-radius:50%;
+    background:var(--red-50);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px;
+    flex-shrink:0;
+  }
+  .fav-text{
+    flex:1;
+    min-width:0;
+  }
+  .fav-label{
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .fav-address{
+    font-size:12px;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .bookmark{
+    font-size:20px;
+    color:var(--muted);
+    flex-shrink:0;
+    cursor:pointer;
+    transition:color .12s ease, transform .1s ease;
+  }
+  .bookmark.active{
+    color:var(--red-600);
+  }
+  .bookmark:active{
+    transform:scale(1.15);
+  }
+  .favorite-hint{
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+    padding:14px 10px 4px;
+  }
+
+  /* ==== Akun ==== */
+  .profile-card{
+    background:var(--card);
+    border-radius:16px;
+    padding:16px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    box-shadow:0 2px 8px rgba(180,80,70,0.06);
+    margin-bottom:16px;
+  }
+  .profile-avatar{
+    width:52px; height:52px;
+    border-radius:50%;
+    background:var(--red-100);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px;
+    flex-shrink:0;
+  }
+  .profile-info{ flex:1; min-width:0; }
+  .profile-name{
+    font-size:16px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .profile-phone{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .profile-edit{
+    font-size:13px;
+    color:var(--red-600);
+    font-weight:600;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  .account-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    overflow-y:auto;
+  }
+  .account-item{
+    background:var(--card);
+    border-radius:14px;
+    padding:13px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 2px 8px rgba(180,80,70,0.06);
+    cursor:pointer;
+    transition:background .12s ease;
+  }
+  .account-item:hover{
+    background:var(--red-50);
+  }
+  .account-icon{
+    width:32px; height:32px;
+    border-radius:50%;
+    background:var(--red-50);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px;
+    flex-shrink:0;
+  }
+  .account-label{
+    flex:1;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .account-value{
+    font-size:12px;
+    color:var(--muted);
+    margin-right:2px;
+  }
+  .account-chevron{
+    color:var(--red-500);
+    font-size:16px;
+    flex-shrink:0;
+  }
+
+  .logout-btn{
+    margin-top:16px;
+    width:100%;
+    background:var(--red-50);
+    color:var(--red-700);
+    border:none;
+    border-radius:16px;
+    padding:14px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .logout-btn:hover{
+    background:var(--red-100);
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="header">
+    <div class="logo">NOOR</div>
+  </div>
+
+  <div class="content">
+
+    <div class="screen active" id="screen-home">
+
+    <div class="field" id="pickup-field">
+      <div class="dot dot-pickup"></div>
+      <div class="field-text">
+        <div class="field-label">Lokasi penjemputan</div>
+        <input id="pickup-input" class="field-value field-input" type="text" placeholder="Cari lokasi penjemputan" value="">
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="dot dot-destination"></div>
+      <div class="field-text">
+        <div class="field-label">Tujuan</div>
+        <input id="destination-input" class="field-value field-input" type="text" placeholder="Cari tujuan">
+      </div>
+    </div>
+
+    <div class="field" id="helper-price-field" style="display:none;">
+      <div class="price-icon">💰</div>
+      <div class="field-text">
+        <input id="helper-price-input" class="field-value field-input" type="text" inputmode="numeric" placeholder="Harga">
+      </div>
+    </div>
+
+    <div class="map-area" id="map"></div>
+
+    <div class="sheet">
+
+      <div class="route-loading" id="route-loading">Menghitung rute...</div>
+
+      <div class="route-info" id="route-info">
+        <span class="ricon">🛣️</span>
+        <div class="ritext">
+          <b id="route-distance">-</b> · <span id="route-duration">-</span>
+          <div style="color:var(--muted); font-size:11px; margin-top:2px;">Estimasi waktu tempuh</div>
+        </div>
+        <div class="riprice">
+          Estimasi ongkos
+          <b id="route-price">-</b>
+        </div>
+      </div>
+
+      <div class="details-btn">
+        <span class="icon">📝</span>
+        <input id="note-input" class="note-input" type="text" placeholder="Catatan untuk pengemudi (opsional)">
+      </div>
+
+      <div class="row-2">
+        <div class="option-btn payment-select" id="payment-select">
+          <span class="icon">💵</span>
+          <span id="payment-label">Tunai</span>
+          <span class="dropdown-arrow">▾</span>
+          <div class="dropdown-menu" id="payment-menu">
+            <div class="dropdown-item selected" data-value="Tunai" data-icon="💵">
+              <span>💵 Tunai</span><span class="check">✓</span>
+            </div>
+            <div class="dropdown-item" data-value="Transfer" data-icon="🏦">
+              <span>🏦 Transfer</span><span class="check">✓</span>
+            </div>
+          </div>
+        </div>
+        <button class="option-btn"><span class="icon">🕒</span><span>Sekarang</span></button>
+      </div>
+
+      <div class="categories" id="categories">
+        <div class="category active" data-base="4000" data-perkm="2000">
+          <span class="emoji">🏍️</span>
+          <span class="name">Bike</span>
+        </div>
+        <div class="category" data-base="8000" data-perkm="3500">
+          <span class="emoji">🚗</span>
+          <span class="name">Car</span>
+          <span class="subtext">max 4 orang</span>
+        </div>
+        <div class="category" data-base="6000" data-perkm="2500">
+          <span class="emoji">🚐</span>
+          <span class="name">Car L</span>
+          <span class="subtext">max 7 orang</span>
+        </div>
+        <div class="category" data-base="10000" data-perkm="3000">
+          <span class="emoji">🧑‍🔧</span>
+          <span class="name">Helper</span>
+        </div>
+      </div>
+
+      <button class="order-btn" id="order-btn" disabled>Isi lokasi & tujuan dulu</button>
+
+      </div><!-- /.sheet -->
+
+    </div><!-- /#screen-home -->
+
+    <div class="screen" id="screen-order">
+      <div class="screen-header">Order Saya</div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="ongoing">Berlangsung</button>
+        <button class="tab" data-tab="done">Selesai</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-ongoing">
+        <div class="order-card">
+          <div class="order-card-top">
+            <span class="order-icon">🏍️</span>
+            <div class="order-route">
+              <div class="order-from">Jalan Legok Masjid, 65</div>
+              <div class="order-to">Stasiun Cakung</div>
+            </div>
+            <span class="order-status status-ongoing">Dalam perjalanan</span>
+          </div>
+          <div class="order-card-bottom">
+            <span>Bike · Tunai</span>
+            <span class="order-price">Rp14.000</span>
+          </div>
+          <button class="cancel-order-btn">Batalkan Order</button>
+        </div>
+
+        <div class="order-card">
+          <div class="order-card-top">
+            <span class="order-icon">🚐</span>
+            <div class="order-route">
+              <div class="order-from">Indomaret Adi Sucipto</div>
+              <div class="order-to">Jalan Sudirman No. 10</div>
+            </div>
+            <span class="order-status status-waiting">Menunggu pengemudi</span>
+          </div>
+          <div class="order-card-bottom">
+            <span>Car L · Transfer</span>
+            <span class="order-price">Rp18.500</span>
+          </div>
+          <button class="cancel-order-btn">Batalkan Order</button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-done">
+        <div class="order-card">
+          <div class="order-card-top">
+            <span class="order-icon">🚗</span>
+            <div class="order-route">
+              <div class="order-from">Jalan Legok Masjid, 65</div>
+              <div class="order-to">Bandara Soekarno-Hatta</div>
+            </div>
+            <span class="order-status status-done">Selesai</span>
+          </div>
+          <div class="order-card-bottom">
+            <span>3 Sep · Car</span>
+            <span class="order-price">Rp62.000</span>
+          </div>
+          <div class="rating-row">
+            <div class="stars">
+              <span class="star" data-value="1">☆</span>
+              <span class="star" data-value="2">☆</span>
+              <span class="star" data-value="3">☆</span>
+              <span class="star" data-value="4">☆</span>
+              <span class="star" data-value="5">☆</span>
+            </div>
+            <input type="text" class="review-input" placeholder="Tulis ulasan (opsional)">
+            <button class="rate-submit-btn">Kirim Penilaian</button>
+          </div>
+        </div>
+
+        <div class="order-card">
+          <div class="order-card-top">
+            <span class="order-icon">🏍️</span>
+            <div class="order-route">
+              <div class="order-from">Stasiun Cakung</div>
+              <div class="order-to">Jalan Legok Masjid, 65</div>
+            </div>
+            <span class="order-status status-done">Selesai</span>
+          </div>
+          <div class="order-card-bottom">
+            <span>1 Sep · Bike</span>
+            <span class="order-price">Rp13.000</span>
+          </div>
+          <div class="rating-row">
+            <div class="stars">
+              <span class="star" data-value="1">☆</span>
+              <span class="star" data-value="2">☆</span>
+              <span class="star" data-value="3">☆</span>
+              <span class="star" data-value="4">☆</span>
+              <span class="star" data-value="5">☆</span>
+            </div>
+            <input type="text" class="review-input" placeholder="Tulis ulasan (opsional)">
+            <button class="rate-submit-btn">Kirim Penilaian</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /#screen-order -->
+
+    <div class="screen" id="screen-favorit">
+      <div class="screen-header-row">
+        <div class="screen-header">Lokasi Favorit</div>
+        <button class="add-fav-btn" id="add-fav-btn">+ Tambah</button>
+      </div>
+
+      <div class="add-fav-form" id="add-fav-form">
+        <input type="text" id="add-fav-label" class="add-fav-input" placeholder="Nama lokasi (mis. Rumah, Kantor)">
+        <input type="text" id="add-fav-address" class="add-fav-input" placeholder="Alamat lengkap">
+        <div class="add-fav-actions">
+          <button class="add-fav-cancel" id="add-fav-cancel">Batal</button>
+          <button class="add-fav-save" id="add-fav-save">Simpan</button>
+        </div>
+      </div>
+
+      <div class="favorite-list">
+        <div class="favorite-item" data-address="Jalan Legok Masjid, 65">
+          <span class="fav-icon">🏠</span>
+          <div class="fav-text">
+            <div class="fav-label">Rumah</div>
+            <div class="fav-address">Jalan Legok Masjid, 65</div>
+          </div>
+          <span class="bookmark active">★</span>
+          <span class="fav-delete">🗑️</span>
+        </div>
+
+        <div class="favorite-item" data-address="Jalan Sudirman No. 10, Jakarta">
+          <span class="fav-icon">🏢</span>
+          <div class="fav-text">
+            <div class="fav-label">Kantor</div>
+            <div class="fav-address">Jalan Sudirman No. 10, Jakarta</div>
+          </div>
+          <span class="bookmark active">★</span>
+          <span class="fav-delete">🗑️</span>
+        </div>
+
+        <div class="favorite-item" data-address="Indomaret Adi Sucipto, Tangerang">
+          <span class="fav-icon">📍</span>
+          <div class="fav-text">
+            <div class="fav-label">Indomaret Adi Sucipto</div>
+            <div class="fav-address">Tangerang</div>
+          </div>
+          <span class="bookmark">☆</span>
+          <span class="fav-delete">🗑️</span>
+        </div>
+
+        <div class="favorite-item" data-address="Stasiun Cakung, Jakarta Timur">
+          <span class="fav-icon">🚉</span>
+          <div class="fav-text">
+            <div class="fav-label">Stasiun Cakung</div>
+            <div class="fav-address">Jakarta Timur</div>
+          </div>
+          <span class="bookmark">☆</span>
+          <span class="fav-delete">🗑️</span>
+        </div>
+      </div>
+
+      <div class="favorite-hint">Ketuk lokasi untuk isi kolom Tujuan, ketuk ☆ untuk favorit, atau 🗑️ untuk hapus.</div>
+    </div><!-- /#screen-favorit -->
+
+    <div class="screen" id="screen-akun">
+      <div class="screen-header">Akun Saya</div>
+
+      <div class="profile-card">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-info">
+          <div class="profile-name">Amin</div>
+          <div class="profile-phone">+62 812-3456-7890</div>
+        </div>
+        <span class="profile-edit">Edit</span>
+      </div>
+
+      <div class="account-list">
+        <div class="account-item">
+          <span class="account-icon">💳</span>
+          <span class="account-label">Metode Pembayaran</span>
+          <span class="account-chevron">›</span>
+        </div>
+        <div class="account-item">
+          <span class="account-icon">📍</span>
+          <span class="account-label">Alamat Tersimpan</span>
+          <span class="account-chevron">›</span>
+        </div>
+        <div class="account-item">
+          <span class="account-icon">🔔</span>
+          <span class="account-label">Notifikasi</span>
+          <span class="account-chevron">›</span>
+        </div>
+        <div class="account-item">
+          <span class="account-icon">🌐</span>
+          <span class="account-label">Bahasa</span>
+          <span class="account-value">Indonesia</span>
+          <span class="account-chevron">›</span>
+        </div>
+        <div class="account-item">
+          <span class="account-icon">❓</span>
+          <span class="account-label">Pusat Bantuan</span>
+          <span class="account-chevron">›</span>
+        </div>
+        <div class="account-item">
+          <span class="account-icon">📄</span>
+          <span class="account-label">Syarat & Ketentuan</span>
+          <span class="account-chevron">›</span>
+        </div>
+      </div>
+
+      <button class="logout-btn">Keluar</button>
+    </div><!-- /#screen-akun -->
+
+    <div class="bottom-nav">
+      <div class="nav">
+        <div class="nav-item active" data-screen="home">
+          <span class="nicon">🏠</span>
+          <span>Beranda</span>
+        </div>
+        <div class="nav-item" data-screen="order">
+          <span class="nicon">📋</span>
+          <span>Order</span>
+        </div>
+        <div class="nav-item" data-screen="favorit">
+          <span class="nicon">⭐</span>
+          <span>Favorit</span>
+        </div>
+        <div class="nav-item" data-screen="akun">
+          <span class="nicon">👤</span>
+          <span>Akun</span>
+          <span class="nav-badge">9+</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ====================================================
+  // KONFIGURASI BACKEND — ganti dengan URL Web App Apps Script kamu
+  // (Deploy > New deployment > Web app, lalu salin URL-nya ke sini)
+  // ====================================================
+  const SCRIPT_URL = 'PASTE_URL_WEB_APP_APPS_SCRIPT_DI_SINI';
+  const CURRENT_USER = 'amin'; // ganti sesuai sistem login kamu (mis. dari localStorage)
+
+  async function postToBackend(action, data) {
+    if (SCRIPT_URL.includes('PASTE_URL')) {
+      console.warn('SCRIPT_URL belum diisi — data tidak dikirim ke sheet.');
+      return { success: false, error: 'SCRIPT_URL belum dikonfigurasi' };
+    }
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // menghindari CORS preflight Apps Script
+      body: JSON.stringify({ action, ...data })
+    });
+    return res.json();
+  }
+
+  async function getFromBackend(action, params = {}) {
+    if (SCRIPT_URL.includes('PASTE_URL')) {
+      console.warn('SCRIPT_URL belum diisi — memakai data contoh.');
+      return null;
+    }
+    const query = new URLSearchParams({ action, ...params }).toString();
+    const res = await fetch(`${SCRIPT_URL}?${query}`);
+    return res.json();
+  }
+
+  // ==== Navigasi bottom nav antar layar ====
+  const navItems = document.querySelectorAll('.nav-item');
+  const screens = document.querySelectorAll('.screen');
+
+  function showScreen(name) {
+    const target = document.getElementById('screen-' + name);
+    if (!target) return; // mis. "akun" belum punya layar
+    screens.forEach(s => s.classList.remove('active'));
+    target.classList.add('active');
+    navItems.forEach(n => n.classList.toggle('active', n.dataset.screen === name));
+
+    if (name === 'order') loadOrders();
+    if (name === 'favorit') loadFavorites();
+  }
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => showScreen(item.dataset.screen));
+  });
+
+  // ==== Tab Order: Berlangsung / Selesai ====
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ==== Favorit: klik lokasi mengisi kolom Tujuan, klik bintang toggle bookmark, klik 🗑️ hapus ====
+  // Pakai event delegation karena daftar bisa dimuat ulang dari sheet (loadFavorites)
+  const favoriteList = document.querySelector('.favorite-list');
+
+  favoriteList.addEventListener('click', async (e) => {
+    const star = e.target.closest('.bookmark');
+    const del = e.target.closest('.fav-delete');
+    const item = e.target.closest('.favorite-item');
+    if (!item) return;
+
+    if (del) {
+      if (!item.dataset.id) {
+        alert('Ini data contoh — hubungkan SCRIPT_URL agar bisa dihapus sungguhan.');
+        return;
+      }
+      if (!confirm(`Hapus "${item.querySelector('.fav-label').textContent}" dari favorit?`)) return;
+      const result = await postToBackend('deleteFavorite', { id: item.dataset.id });
+      if (result && result.success) {
+        item.remove();
+      } else {
+        alert('Gagal menghapus: ' + (result && result.error ? result.error : 'coba lagi'));
+      }
+      return;
+    }
+
+    if (star) {
+      const nowActive = !star.classList.contains('active');
+      star.classList.toggle('active', nowActive);
+      star.textContent = nowActive ? '★' : '☆';
+      if (item.dataset.id) {
+        postToBackend('toggleFavorite', { id: item.dataset.id, bookmark: nowActive });
+      }
+      return;
+    }
+
+    const destInput = document.getElementById('destination-input');
+    destInput.value = item.dataset.address;
+    showScreen('home');
+    // trigger pencarian otomatis via Places Geocoder jika sudah siap
+    if (typeof geocodeAndPlace === 'function' && typeof destinationMarker !== 'undefined') {
+      geocodeAndPlace(item.dataset.address, destinationMarker, false);
+      setTimeout(tryCalculateRoute, 400);
+    }
+  });
+
+  // ==== Muat data Favorit dari sheet (fallback: pakai data contoh bawaan) ====
+  async function loadFavorites() {
+    try {
+      const data = await getFromBackend('getFavorites', { user: CURRENT_USER });
+      if (!data || !Array.isArray(data) || data.length === 0) return; // pakai fallback HTML bawaan
+
+      favoriteList.innerHTML = data.map(f => `
+        <div class="favorite-item" data-id="${f.id}" data-address="${f.alamat}">
+          <span class="fav-icon">📍</span>
+          <div class="fav-text">
+            <div class="fav-label">${f.label}</div>
+            <div class="fav-address">${f.alamat}</div>
+          </div>
+          <span class="bookmark ${f.bookmark ? 'active' : ''}">${f.bookmark ? '★' : '☆'}</span>
+          <span class="fav-delete">🗑️</span>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.warn('Gagal memuat favorit dari sheet, memakai data contoh.', err);
+    }
+  }
+
+  // ==== Form tambah lokasi favorit baru ====
+  const addFavBtn = document.getElementById('add-fav-btn');
+  const addFavForm = document.getElementById('add-fav-form');
+  const addFavLabel = document.getElementById('add-fav-label');
+  const addFavAddress = document.getElementById('add-fav-address');
+
+  function closeAddFavForm() {
+    addFavForm.classList.remove('open');
+    addFavLabel.value = '';
+    addFavAddress.value = '';
+  }
+
+  addFavBtn.addEventListener('click', () => {
+    addFavForm.classList.toggle('open');
+    if (addFavForm.classList.contains('open')) addFavLabel.focus();
+  });
+
+  document.getElementById('add-fav-cancel').addEventListener('click', closeAddFavForm);
+
+  document.getElementById('add-fav-save').addEventListener('click', async () => {
+    const label = addFavLabel.value.trim();
+    const alamat = addFavAddress.value.trim();
+    if (!label || !alamat) {
+      alert('Nama lokasi dan alamat wajib diisi.');
+      return;
+    }
+
+    const saveBtn = document.getElementById('add-fav-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Menyimpan...';
+
+    try {
+      const result = await postToBackend('addFavorite', {
+        user: CURRENT_USER, label, alamat, bookmark: true
+      });
+      if (result && result.success) {
+        closeAddFavForm();
+        loadFavorites();
+      } else {
+        alert('Gagal menyimpan: ' + (result && result.error ? result.error : 'periksa SCRIPT_URL'));
+      }
+    } catch (err) {
+      alert('Gagal terhubung ke server: ' + err.message);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Simpan';
+    }
+  });
+
+  // ==== Muat data Order dari sheet (fallback: pakai data contoh bawaan) ====
+  async function loadOrders() {
+    try {
+      const data = await getFromBackend('getOrders', { user: CURRENT_USER });
+      if (!data || !Array.isArray(data) || data.length === 0) return; // pakai fallback HTML bawaan
+
+      const iconFor = { Bike: '🏍️', Car: '🚗', 'Car L': '🚐', Helper: '🧑‍🔧' };
+      const ongoing = data.filter(o => o.status !== 'Selesai' && o.status !== 'Dibatalkan');
+      const done = data.filter(o => o.status === 'Selesai' || o.status === 'Dibatalkan');
+
+      const statusClass = (s) => s === 'Selesai' ? 'status-done' : (s === 'Dibatalkan' ? 'status-cancelled' : 'status-waiting');
+
+      const renderStars = (rating) => [1,2,3,4,5].map(v =>
+        `<span class="star" data-value="${v}">${v <= rating ? '★' : '☆'}</span>`
+      ).join('');
+
+      const renderCard = (o) => `
+        <div class="order-card" data-id="${o.id}">
+          <div class="order-card-top">
+            <span class="order-icon">${iconFor[o.kategori] || '🚗'}</span>
+            <div class="order-route">
+              <div class="order-from">${o.lokasi_jemput || '-'}</div>
+              <div class="order-to">${o.tujuan || '-'}</div>
+            </div>
+            <span class="order-status ${statusClass(o.status)}">${o.status}</span>
+          </div>
+          <div class="order-card-bottom">
+            <span>${o.kategori} · ${o.metode_bayar}</span>
+            <span class="order-price">Rp${Number(o.harga || 0).toLocaleString('id-ID')}</span>
+          </div>
+          ${o.status !== 'Selesai' && o.status !== 'Dibatalkan' ? `
+            <button class="cancel-order-btn">Batalkan Order</button>
+          ` : ''}
+          ${o.status === 'Selesai' ? (
+            o.rating ? `
+            <div class="rating-row rated">
+              <div class="stars">${renderStars(Number(o.rating))}</div>
+              ${o.review ? `<div class="review-text">"${o.review}"</div>` : ''}
+            </div>` : `
+            <div class="rating-row">
+              <div class="stars">${renderStars(0)}</div>
+              <input type="text" class="review-input" placeholder="Tulis ulasan (opsional)">
+              <button class="rate-submit-btn">Kirim Penilaian</button>
+            </div>`
+          ) : ''}
+        </div>
+      `;
+
+      document.getElementById('tab-ongoing').innerHTML = ongoing.map(renderCard).join('') || '<div class="favorite-hint">Belum ada order berlangsung.</div>';
+      document.getElementById('tab-done').innerHTML = done.map(renderCard).join('') || '<div class="favorite-hint">Belum ada order selesai.</div>';
+    } catch (err) {
+      console.warn('Gagal memuat order dari sheet, memakai data contoh.', err);
+    }
+  }
+
+  // ==== Batalkan order, pilih bintang, & kirim penilaian ====
+  // Event delegation di level layar karena kartu order dimuat ulang secara dinamis
+  const screenOrder = document.getElementById('screen-order');
+
+  screenOrder.addEventListener('click', async (e) => {
+    const cancelBtn = e.target.closest('.cancel-order-btn');
+    const star = e.target.closest('.star');
+    const submitBtn = e.target.closest('.rate-submit-btn');
+    const card = e.target.closest('.order-card');
+    if (!card) return;
+    const orderId = card.dataset.id;
+
+    // --- Batalkan order ---
+    if (cancelBtn) {
+      if (!orderId) {
+        alert('Ini data contoh — hubungkan SCRIPT_URL agar bisa dibatalkan sungguhan.');
+        return;
+      }
+      if (!confirm('Batalkan order ini?')) return;
+
+      cancelBtn.disabled = true;
+      cancelBtn.textContent = 'Membatalkan...';
+      const result = await postToBackend('updateOrderStatus', { id: orderId, status: 'Dibatalkan' });
+      if (result && result.success) {
+        loadOrders();
+      } else {
+        cancelBtn.disabled = false;
+        cancelBtn.textContent = 'Batalkan Order';
+        alert('Gagal membatalkan: ' + (result && result.error ? result.error : 'coba lagi'));
+      }
+      return;
+    }
+
+    // --- Pilih jumlah bintang (belum dikirim) ---
+    if (star) {
+      const value = parseInt(star.dataset.value, 10);
+      const starsWrap = star.closest('.stars');
+      starsWrap.dataset.selected = value;
+      starsWrap.querySelectorAll('.star').forEach(s => {
+        s.textContent = parseInt(s.dataset.value, 10) <= value ? '★' : '☆';
+      });
+      return;
+    }
+
+    // --- Kirim penilaian ---
+    if (submitBtn) {
+      if (!orderId) {
+        alert('Ini data contoh — hubungkan SCRIPT_URL agar penilaian tersimpan sungguhan.');
+        return;
+      }
+      const ratingRow = submitBtn.closest('.rating-row');
+      const starsWrap = ratingRow.querySelector('.stars');
+      const rating = parseInt(starsWrap.dataset.selected || '0', 10);
+      const review = ratingRow.querySelector('.review-input').value.trim();
+
+      if (rating < 1) {
+        alert('Pilih jumlah bintang dulu.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Mengirim...';
+      const result = await postToBackend('rateOrder', { id: orderId, rating, review });
+      if (result && result.success) {
+        loadOrders();
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Kirim Penilaian';
+        alert('Gagal mengirim penilaian: ' + (result && result.error ? result.error : 'coba lagi'));
+      }
+    }
+  });
+
+  document.querySelectorAll('.category').forEach(cat => {
+    cat.addEventListener('click', () => {
+      document.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+      cat.classList.add('active');
+      updatePriceForActiveCategory();
+      toggleWithHelper(cat);
+      updateOrderButtonState();
+    });
+  });
+
+  // ==== Sembunyikan kolom lokasi penjemputan & tampilkan Harga khusus kategori Helper ====
+  function toggleWithHelper(cat) {
+    const catName = cat.querySelector('.name').textContent.trim();
+    const isHelper = catName === 'Helper';
+    document.getElementById('pickup-field').style.display = isHelper ? 'none' : 'flex';
+    document.getElementById('helper-price-field').style.display = isHelper ? 'flex' : 'none';
+  }
+
+  // ==== Status tombol "Memesan" — beda syarat untuk Helper vs kategori lain ====
+  function updateOrderButtonState() {
+    const orderBtn = document.getElementById('order-btn');
+    const activeCat = document.querySelector('.category.active');
+    if (!activeCat) return;
+
+    const isHelper = activeCat.querySelector('.name').textContent.trim() === 'Helper';
+
+    if (isHelper) {
+      const destFilled = document.getElementById('destination-input').value.trim().length > 0;
+      const hargaFilled = parseInt((document.getElementById('helper-price-input').value || '').replace(/\D/g, ''), 10) > 0;
+      const ready = destFilled && hargaFilled;
+      orderBtn.disabled = !ready;
+      orderBtn.textContent = ready ? 'Memesan' : (destFilled ? 'Isi harga dulu' : 'Isi tujuan dulu');
+    } else {
+      const ready = lastDistanceKm !== null;
+      orderBtn.disabled = !ready;
+      orderBtn.textContent = ready ? 'Memesan' : 'Isi lokasi & tujuan dulu';
+    }
+  }
+
+  document.getElementById('destination-input').addEventListener('input', updateOrderButtonState);
+  document.getElementById('helper-price-input').addEventListener('input', updateOrderButtonState);
+
+  // ==== Dropdown pilihan pembayaran (Tunai / Transfer) ====
+  const paymentSelect = document.getElementById('payment-select');
+  const paymentMenu = document.getElementById('payment-menu');
+  const paymentLabel = document.getElementById('payment-label');
+  const paymentIcon = paymentSelect.querySelector('.icon');
+
+  paymentSelect.addEventListener('click', (e) => {
+    paymentMenu.classList.toggle('open');
+    e.stopPropagation();
+  });
+
+  paymentMenu.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', () => {
+      paymentLabel.textContent = item.dataset.value;
+      paymentIcon.textContent = item.dataset.icon;
+      paymentMenu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      paymentMenu.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', () => {
+    paymentMenu.classList.remove('open');
+  });
+
+  // ==== Google Maps + Places + Directions integration ====
+  let map, geocoder, directionsService, directionsRenderer;
+  let pickupMarker, destinationMarker;
+  let lastDistanceKm = null; // disimpan supaya bisa dihitung ulang saat ganti kategori
+  const defaultCenter = { lat: -6.1783, lng: 106.9483 }; // Tangerang, sesuaikan jika perlu
+
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: defaultCenter,
+      zoom: 15,
+      disableDefaultUI: true,
+      zoomControl: true,
+      styles: [
+        { elementType: "geometry", stylers: [{ color: "#fff5f4" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#8a7570" }] },
+        { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+        { featureType: "poi", stylers: [{ visibility: "off" }] },
+        { featureType: "water", elementType: "geometry", stylers: [{ color: "#fad0cc" }] }
+      ]
+    });
+
+    geocoder = new google.maps.Geocoder();
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+      map,
+      suppressMarkers: true, // marker custom kita yang dipakai
+      polylineOptions: {
+        strokeColor: "#d1544a",
+        strokeWeight: 5,
+        strokeOpacity: 0.85
+      }
+    });
+
+    pickupMarker = new google.maps.Marker({
+      map,
+      draggable: true,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: "#e2685c",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 2
+      }
+    });
+
+    destinationMarker = new google.maps.Marker({
+      map,
+      draggable: true,
+      icon: {
+        path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+        scale: 5,
+        fillColor: "#b8433a",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 2
+      }
+    });
+
+    setupAutocomplete('pickup-input', pickupMarker);
+    setupAutocomplete('destination-input', destinationMarker);
+
+    // geocode alamat awal yang sudah terisi di kolom penjemputan (jika ada)
+    geocodeAndPlace(document.getElementById('pickup-input').value, pickupMarker, true);
+
+    // update posisi teks saat marker digeser manual
+    pickupMarker.addListener('dragend', () => reverseGeocode(pickupMarker, 'pickup-input'));
+    destinationMarker.addListener('dragend', () => reverseGeocode(destinationMarker, 'destination-input'));
+  }
+
+  function setupAutocomplete(inputId, marker) {
+    const input = document.getElementById(inputId);
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+      fields: ['geometry', 'formatted_address', 'name']
+    });
+    autocomplete.bindTo('bounds', map);
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (!place.geometry || !place.geometry.location) return;
+
+      marker.setPosition(place.geometry.location);
+      marker.setVisible(true);
+      map.panTo(place.geometry.location);
+      map.setZoom(16);
+
+      input.classList.remove('placeholder');
+      tryCalculateRoute();
+    });
+  }
+
+  function geocodeAndPlace(address, marker, panTo) {
+    if (!address) return;
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        marker.setPosition(results[0].geometry.location);
+        marker.setVisible(true);
+        if (panTo) map.panTo(results[0].geometry.location);
+        tryCalculateRoute();
+      }
+    });
+  }
+
+  function reverseGeocode(marker, inputId) {
+    geocoder.geocode({ location: marker.getPosition() }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        document.getElementById(inputId).value = results[0].formatted_address;
+        tryCalculateRoute();
+      }
+    });
+  }
+
+  // ==== Directions: hitung rute, jarak, waktu tempuh, dan estimasi ongkos ====
+  function tryCalculateRoute() {
+    const activeCat = document.querySelector('.category.active');
+    const isHelper = activeCat && activeCat.querySelector('.name').textContent.trim() === 'Helper';
+    if (isHelper) return; // Helper tidak butuh rute, punya alur tombol sendiri
+
+    if (!(pickupMarker.getVisible() && destinationMarker.getVisible())) return;
+
+    const routeLoading = document.getElementById('route-loading');
+    const routeInfo = document.getElementById('route-info');
+    routeInfo.classList.remove('show');
+    routeLoading.classList.add('show');
+
+    directionsService.route({
+      origin: pickupMarker.getPosition(),
+      destination: destinationMarker.getPosition(),
+      travelMode: google.maps.TravelMode.DRIVING
+    }, (result, status) => {
+      routeLoading.classList.remove('show');
+
+      if (status !== 'OK') {
+        console.error('Directions gagal:', status);
+        return;
+      }
+
+      directionsRenderer.setDirections(result);
+
+      const leg = result.routes[0].legs[0];
+      lastDistanceKm = leg.distance.value / 1000; // meter -> km
+
+      document.getElementById('route-distance').textContent = leg.distance.text;
+      document.getElementById('route-duration').textContent = leg.duration.text;
+      routeInfo.classList.add('show');
+
+      updateOrderButtonState();
+
+      updatePriceForActiveCategory();
+
+      // fokuskan peta ke seluruh rute
+      const bounds = new google.maps.LatLngBounds();
+      leg.steps.forEach(step => bounds.extend(step.start_location) && bounds.extend(step.end_location));
+      map.fitBounds(bounds, 80);
+    });
+  }
+
+  function updatePriceForActiveCategory() {
+    if (lastDistanceKm === null) return;
+    const active = document.querySelector('.category.active');
+    if (!active) return;
+
+    const base = parseInt(active.dataset.base, 10);
+    const perKm = parseInt(active.dataset.perkm, 10);
+    const price = Math.round((base + perKm * lastDistanceKm) / 500) * 500; // dibulatkan ke 500 terdekat
+
+    document.getElementById('route-price').textContent =
+      'Rp' + price.toLocaleString('id-ID');
+  }
+
+  // ==== Kirim order baru ke sheet saat tombol "Memesan" diklik ====
+  document.getElementById('order-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('order-btn');
+    if (btn.disabled) return;
+
+    const activeCat = document.querySelector('.category.active');
+    const kategori = activeCat.querySelector('.name').textContent.trim();
+    const isHelper = kategori === 'Helper';
+
+    let harga = 0;
+    if (isHelper) {
+      harga = parseInt((document.getElementById('helper-price-input').value || '0').replace(/\D/g, ''), 10) || 0;
+    } else {
+      harga = parseInt((document.getElementById('route-price').textContent || '0').replace(/\D/g, ''), 10) || 0;
+    }
+
+    const payload = {
+      user: CURRENT_USER,
+      kategori: kategori,
+      lokasi_jemput: isHelper ? '' : document.getElementById('pickup-input').value,
+      tujuan: document.getElementById('destination-input').value,
+      harga: harga,
+      metode_bayar: document.getElementById('payment-label').textContent,
+      catatan: document.getElementById('note-input').value,
+      jarak: document.getElementById('route-distance').textContent,
+      durasi: document.getElementById('route-duration').textContent
+    };
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Mengirim order...';
+
+    try {
+      const result = await postToBackend('newOrder', payload);
+      if (result && result.success) {
+        btn.textContent = 'Order terkirim ✓';
+        setTimeout(() => showScreen('order'), 600);
+      } else {
+        btn.textContent = originalText;
+        btn.disabled = false;
+        alert('Gagal mengirim order: ' + (result && result.error ? result.error : 'periksa SCRIPT_URL'));
+      }
+    } catch (err) {
+      btn.textContent = originalText;
+      btn.disabled = false;
+      alert('Gagal terhubung ke server: ' + err.message);
+    }
+  });
+</script>
+
+<!--
+  GANTI "YOUR_API_KEY_HERE" DI BAWAH INI DENGAN GOOGLE MAPS API KEY KAMU.
+  Aktifkan "Maps JavaScript API", "Places API", dan "Directions API" di Google Cloud Console.
+-->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places&callback=initMap" async defer></script>
+
+</body>
+</html>
