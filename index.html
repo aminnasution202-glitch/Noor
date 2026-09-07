@@ -630,9 +630,9 @@ function setConnection(online) {
 }
 
 function isBackendConfigured() {
-  return CONFIG.APPS_SCRIPT_URL &&
-    !CONFIG.APPS_SCRIPT_URL.includes('PASTE_URL') &&
-    CONFIG.APPS_SCRIPT_URL.startsWith('http');
+  return https://script.google.com/macros/s/AKfycbwCIa1P6JlnItCFJochLaIByXV3swIzxmyd1CNSkPyetKcKEKCX2PEVY8W6xvI-4OYmoQ/exec &&
+    !https://script.google.com/macros/s/AKfycbwCIa1P6JlnItCFJochLaIByXV3swIzxmyd1CNSkPyetKcKEKCX2PEVY8W6xvI-4OYmoQ/exec.includes('PASTE_URL') &&
+    https://script.google.com/macros/s/AKfycbwCIa1P6JlnItCFJochLaIByXV3swIzxmyd1CNSkPyetKcKEKCX2PEVY8W6xvI-4OYmoQ/exec.startsWith('http');
 }
 
 function isMapsConfigured() {
@@ -655,7 +655,7 @@ async function postBackend(action, data = {}) {
   if (!isBackendConfigured()) {
     throw new Error('URL Apps Script belum dikonfigurasi.');
   }
-  const response = await fetchWithTimeout(CONFIG.APPS_SCRIPT_URL, {
+  const response = await fetchWithTimeout(https://script.google.com/macros/s/AKfycbwCIa1P6JlnItCFJochLaIByXV3swIzxmyd1CNSkPyetKcKEKCX2PEVY8W6xvI-4OYmoQ/exec, {
     method: 'POST',
     headers: {'Content-Type':'text/plain;charset=utf-8'},
     body: JSON.stringify({
@@ -681,7 +681,7 @@ async function getBackend(action, params = {}) {
     token: (state.user && state.user.token) || '',
     ...params
   }).toString();
-  const response = await fetchWithTimeout(CONFIG.APPS_SCRIPT_URL + '?' + query);
+  const response = await fetchWithTimeout(https://script.google.com/macros/s/AKfycbwCIa1P6JlnItCFJochLaIByXV3swIzxmyd1CNSkPyetKcKEKCX2PEVY8W6xvI-4OYmoQ/exec + '?' + query);
   if (!response.ok) throw new Error('Server HTTP ' + response.status);
   const result = await response.json();
   if (result && result.success === false) {
